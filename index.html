@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Hipoteca</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Simulador de Hipoteca</h1>
+            <p class="subtitle">Amortización francesa · Mercado español</p>
+        </header>
+
+        <div class="panel-layout">
+
+
+            <!-- ── Columna izquierda: formulario ──────────────────────────────── -->
+            <aside class="form-panel">
+                <form id="form-main" novalidate>
+
+                    <h2>Datos del préstamo</h2>
+
+                    <div class="field">
+                        <label for="capital">Capital solicitado</label>
+                        <div class="input-wrap">
+                            <input type="number" id="capital" min="1000" step="1000" value="200000" required>
+                            <span class="unit">€</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="interes">Tipo de interés anual</label>
+                        <div class="input-wrap">
+                            <input type="number" id="interes" min="0.01" max="25" step="0.01" value="2.45" required>
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="anios">Plazo</label>
+                        <div class="input-wrap">
+                            <input type="number" id="anios" min="1" max="40" step="1" value="30" required>
+                            <span class="unit">años</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Año inicial</label>
+                        <div class="date-pair">
+                            <div class="input-wrap">
+                                <select id="inicio-mes">
+                                    <option value="1">Ene</option>
+                                    <option value="2">Feb</option>
+                                    <option value="3">Mar</option>
+                                    <option value="4">Abr</option>
+                                    <option value="5">May</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Jul</option>
+                                    <option value="8">Ago</option>
+                                    <option value="9">Sep</option>
+                                    <option value="10">Oct</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dic</option>
+                                </select>
+                            </div>
+                            <div class="input-wrap">
+                                <input type="number" id="inicio-anio" min="1900" max="2100" step="1" placeholder="2025"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="primera-cuota">Primera cuota (opc.)</label>
+                        <div class="input-wrap">
+                            <input type="number" id="primera-cuota" min="0" step="0.01" placeholder="—">
+                            <span class="unit">€</span>
+                        </div>
+                        <p class="field-hint">Cuota parcial si el préstamo comenzó a mitad de mes (solo intereses, sin amortizar capital).</p>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="section-header">
+                        <h2>Amortizaciones extraordinarias</h2>
+                        <button type="button" class="btn-add" id="btn-add-amort" title="Añadir amortización">
+                            + Añadir
+                        </button>
+                    </div>
+
+                    <ul class="amort-list" id="amort-list" aria-label="Lista de amortizaciones"></ul>
+                    <p class="amort-empty" id="amort-empty">Sin amortizaciones añadidas.</p>
+
+                    <div class="field destino-field hidden" id="destino-field">
+                        <label>Destino del excedente</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="destino" value="plazo" checked>
+                                Reducir plazo
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="destino" value="cuota">
+                                Reducir cuota mensual
+                            </label>
+                        </div>
+                    </div>
+
+                    <p class="form-error hidden" id="error-main" aria-live="polite"></p>
+                    <button type="submit" class="btn-primary">Calcular</button>
+
+                    <div class="io-bar">
+                        <button type="button" id="btn-export" class="btn-io">↓ Exportar</button>
+                        <label class="btn-io" for="input-import">↑ Importar</label>
+                        <input type="file" id="input-import" accept=".json" class="hidden">
+                    </div>
+
+                </form>
+            </aside>
+
+            <!-- ── Columna derecha: resultados ────────────────────────────────── -->
+            <main class="results-panel">
+
+                <div class="chart-wrapper">
+                    <canvas id="chart-amortizacion" aria-label="Gráfico de amortización"></canvas>
+                </div>
+
+                <div id="summary" class="summary hidden" aria-live="polite">
+                    <div class="summary-card">
+                        <span class="card-label">Cuota mensual inicial</span>
+                        <span class="card-value" id="cuota-mensual">—</span>
+                    </div>
+                    <div class="summary-card accent">
+                        <span class="card-label">Total intereses</span>
+                        <span class="card-value" id="total-intereses">—</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="card-label">Total pagado final</span>
+                        <span class="card-value" id="total-pagado">—</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="card-label">Plazo final</span>
+                        <span class="card-value" id="plazo-final">—</span>
+                    </div>
+                </div>
+
+                <div id="capital-restante-section" class="capital-restante-card hidden" aria-live="polite">
+                    <div>
+                        <span class="card-label">Capital restante hoy</span>
+                        <span class="card-value" id="capital-restante">—</span>
+                    </div>
+                    <span class="card-hint" id="capital-restante-hint"></span>
+                </div>
+
+                <div id="savings-section" class="savings-banner hidden" aria-live="polite">
+                    <div class="savings-item">
+                        <span class="savings-label">Ahorro en intereses</span>
+                        <span class="savings-value" id="saving-interest">—</span>
+                    </div>
+                    <div class="savings-item" id="saving-time-item">
+                        <span class="savings-label">Reducción de plazo</span>
+                        <span class="savings-value" id="saving-time">—</span>
+                    </div>
+                </div>
+
+            </main>
+
+        </div><!-- /panel-layout -->
+    </div><!-- /container -->
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

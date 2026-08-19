@@ -67,23 +67,23 @@ function onSubmit(e) {
     }
 
     // Build schedules
-    const primerasCuota  = parseFloat(document.getElementById('primera-cuota').value) || 0;
-    const hasPrimera     = primerasCuota > 0;
+    const primerasCuota = parseFloat(document.getElementById('primera-cuota').value) || 0;
+    const hasPrimera = primerasCuota > 0;
 
     // When a partial first month exists, amort months shift by -1 inside the regular schedule
     const regularAmorts = hasPrimera
         ? amortizations.filter(a => a.month > 1).map(a => ({ ...a, month: a.month - 1 }))
         : amortizations;
 
-    const baseRegular  = amortizationSchedule(capital, interes, totalMonths);
+    const baseRegular = amortizationSchedule(capital, interes, totalMonths);
     const finalRegular = regularAmorts.length > 0
         ? buildScheduleWithAmortizations(capital, interes, totalMonths, regularAmorts, mode)
         : baseRegular;
 
     // Prepend the partial first month row (all interest, no capital reduction)
-    const shift      = hasPrimera ? 1 : 0;
+    const shift = hasPrimera ? 1 : 0;
     const primeraRow = { month: 1, payment: primerasCuota, interest: primerasCuota, capital: 0, balance: capital };
-    const baseSchedule  = hasPrimera ? [primeraRow, ...baseRegular.map(r => ({ ...r, month: r.month + 1 }))]  : baseRegular;
+    const baseSchedule = hasPrimera ? [primeraRow, ...baseRegular.map(r => ({ ...r, month: r.month + 1 }))] : baseRegular;
     const finalSchedule = hasPrimera ? [primeraRow, ...finalRegular.map(r => ({ ...r, month: r.month + 1 }))] : finalRegular;
 
     renderChart(finalSchedule, fechaInicio);
@@ -105,13 +105,13 @@ function dateToScheduleMonth(yearMonth, startYearMonth) {
 
 function buildState() {
     return {
-        capital:        parseFloat(document.getElementById('capital').value)      || 0,
-        interes:        parseFloat(document.getElementById('interes').value)      || 0,
-        anios:          parseInt(document.getElementById('anios').value, 10)      || 0,
-        inicioMes:      parseInt(document.getElementById('inicio-mes').value, 10)  || 1,
-        inicioAnio:     parseInt(document.getElementById('inicio-anio').value, 10) || new Date().getFullYear(),
-        primerasCuota:  parseFloat(document.getElementById('primera-cuota').value) || 0,
-        destino:        document.querySelector('input[name="destino"]:checked')?.value ?? 'plazo',
+        capital: parseFloat(document.getElementById('capital').value) || 0,
+        interes: parseFloat(document.getElementById('interes').value) || 0,
+        anios: parseInt(document.getElementById('anios').value, 10) || 0,
+        inicioMes: parseInt(document.getElementById('inicio-mes').value, 10) || 1,
+        inicioAnio: parseInt(document.getElementById('inicio-anio').value, 10) || new Date().getFullYear(),
+        primerasCuota: parseFloat(document.getElementById('primera-cuota').value) || 0,
+        destino: document.querySelector('input[name="destino"]:checked')?.value ?? 'plazo',
         amortizaciones: getAmortizations(),
     };
 }
@@ -120,7 +120,7 @@ function populateForm(state) {
     if (state.capital) document.getElementById('capital').value = state.capital;
     if (state.interes) document.getElementById('interes').value = state.interes;
     if (state.anios) document.getElementById('anios').value = state.anios;
-    if (state.inicioMes)  document.getElementById('inicio-mes').value  = state.inicioMes;
+    if (state.inicioMes) document.getElementById('inicio-mes').value = state.inicioMes;
     if (state.inicioAnio) document.getElementById('inicio-anio').value = state.inicioAnio;
     if (state.primerasCuota) document.getElementById('primera-cuota').value = state.primerasCuota;
     if (state.destino) {
